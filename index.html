@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ŠČIT — Zavarovalniški informacijski sistem</title>
+<style>
+:root{
+  --navy:#10253D; --paper:#F5F2EA; --panel:#FFFFFF;
+  --steel:#3C6E8F; --amber:#C97C2E; --forest:#3F6B4F; --rust:#A3432F;
+  --ink:#1B1B18; --mute:#6B6558; --line:#E4DED0;
+}
+*{box-sizing:border-box;}
+html,body{height:100%; margin:0;}
+body{background:var(--paper); color:var(--ink); font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; display:flex;}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif; margin:0 0 4px;}
+.app{display:flex; width:100%; min-height:100vh;}
+.side{width:240px; flex:0 0 240px; background:var(--navy); color:#EDEAE2; padding:22px 14px; display:flex; flex-direction:column; gap:2px;}
+.brand{font-family:Georgia,serif; font-size:22px; padding:0 10px 18px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:14px;}
+.brand small{display:block; font-family:-apple-system,sans-serif; font-size:11px; color:#9FB4C8; margin-top:2px;}
+.nav-btn{all:unset; cursor:pointer; padding:9px 12px; border-radius:6px; font-size:13.3px; color:#CFE0EE; display:flex; gap:10px; align-items:center;}
+.nav-btn:hover{background:rgba(255,255,255,.06);}
+.nav-btn.active{background:var(--steel); color:#fff;}
+.side-foot{margin-top:auto; font-size:11.5px; color:#BFD0DE; padding:10px;}
+.side-foot button{all:unset; cursor:pointer; color:#9FB4C8; text-decoration:underline; font-size:11px;}
+main{flex:1; min-width:0; padding:26px 34px;}
+.topbar{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+.topbar p{color:var(--mute); margin:2px 0 0; font-size:14px;}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+.toolbar input[type=text]{padding:8px 10px; border:1px solid var(--line); border-radius:7px; font:inherit; background:var(--panel); min-width:180px;}
+button.btn{font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:8px 14px; border-radius:7px; font-size:13px;}
+button.btn.primary{background:var(--steel); color:#fff; border-color:var(--steel);}
+button.btn.danger{color:var(--rust); border-color:#e2c9c2;}
+button.btn:hover{filter:brightness(1.06);}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:22px;}
+.kpi{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px;}
+.kpi .num{font-family:Georgia,serif; font-size:26px;}
+.kpi .lbl{color:var(--mute); font-size:12.5px; margin-top:4px;}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:20px; overflow-x:auto;}
+.panel h3{font-size:16px; margin-bottom:12px;}
+table{width:100%; border-collapse:collapse; font-size:13.2px; min-width:520px;}
+th{text-align:left; color:var(--mute); font-weight:600; font-size:11.2px; padding:8px 9px; border-bottom:1px solid var(--line);}
+td{padding:8px 9px; border-bottom:1px solid var(--line); vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.tag{padding:3px 9px; border-radius:20px; font-size:11.2px; display:inline-block; white-space:nowrap;}
+.tag.ok{background:#E4EFE6; color:var(--forest);}
+.tag.wait{background:#F6E9D8; color:var(--amber);}
+.tag.risk{background:#F3DEDA; color:var(--rust);}
+.rowbtn{all:unset; cursor:pointer; font-size:11.8px; color:var(--steel); margin-right:8px; white-space:nowrap;}
+.rowbtn.danger{color:var(--rust);}
+.note{color:var(--mute); font-size:12.5px; margin-top:6px;}
+.two-col{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
+.region-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px;}
+.regionbox{border:1px solid var(--line); border-radius:10px; padding:14px; background:var(--panel);}
+.regionbox b{font-family:Georgia,serif; font-size:20px; display:block;}
+.bars{display:flex; align-items:flex-end; gap:10px; height:120px; padding-top:10px;}
+.bar{flex:1; background:linear-gradient(var(--steel),var(--navy)); border-radius:4px 4px 0 0; position:relative;}
+.bar span{position:absolute; top:-18px; left:0; right:0; text-align:center; font-size:11px; color:var(--mute);}
+.bar em{position:absolute; bottom:-20px; left:0; right:0; text-align:center; font-size:11px; font-style:normal; color:var(--mute);}
+@media (max-width:900px){ .two-col{grid-template-columns:1fr;} .side{width:70px; flex-basis:70px;} .side .lbltext,.brand small,.side-foot{display:none;} .brand{font-size:0;} .brand:before{content:'Š'; font-size:22px;} }
+
+.overlay{position:fixed; inset:0; background:rgba(16,37,61,.45); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; z-index:50; overflow:auto;}
+.overlay.show{display:flex;}
+.box{background:var(--panel); border-radius:10px; padding:24px; width:100%; max-width:460px;}
+.box h3{margin-bottom:14px;}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:12.5px; color:var(--mute); margin-bottom:4px;}
+.field input,.field textarea,.field select{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font:inherit; background:var(--paper); color:var(--ink);}
+.field textarea{min-height:70px;}
+.box .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;}
+.hr{border:none; border-top:1px solid var(--line); margin:16px 0;}
+.log{font-size:12px; color:var(--mute); margin-top:8px; white-space:pre-wrap;}
+.admin-fab{position:fixed; top:18px; right:22px; z-index:40; display:flex; gap:8px;}
+
+.login-wrap{position:fixed; inset:0; background:var(--navy); display:none; align-items:center; justify-content:center; z-index:200;}
+.login-wrap.show{display:flex;}
+.login-card{background:var(--panel); padding:30px; border-radius:12px; width:100%; max-width:340px;}
+.err{color:var(--rust); font-size:12.5px; margin-top:8px;}
+
+@media print{ .side,.admin-fab,.toolbar,.rowbtn{display:none !important;} main{padding:0;} .panel{border:none;} }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap"><div class="login-card">
+  <h3>ŠČIT — prijava</h3>
+  <p class="note">Preprosta prijava po vlogah, brez šifriranja — primerna za osebno/interno rabo, ne za javno izpostavljen sistem.</p>
+  <div class="field"><label>Uporabniško ime</label><input id="li_user" placeholder="npr. admin"></div>
+  <div class="field"><label>Geslo</label><input id="li_pass" type="password"></div>
+  <button class="btn primary" style="width:100%" onclick="tryLogin()">Prijava</button>
+  <div class="err" id="li_err"></div>
+  <p class="note">Demo račun: uporabniško ime <b>admin</b>, geslo <b>admin123</b> (uredi ali dodaj uporabnike v modulu Uporabniki).</p>
+</div></div>
+
+<div class="admin-fab">
+  <button class="btn primary" onclick="openAdmin()">Admin</button>
+</div>
+<div class="app">
+  <nav class="side"><div class="brand">ŠČIT<small>Zavarovalniški IS — Nova generacija</small></div>
+    <div id="navwrap"></div>
+    <div class="side-foot" id="sidefoot"></div>
+  </nav>
+  <main id="main"></main>
+</div>
+
+<div class="overlay" id="formOverlay"><div class="box" id="formBox"></div></div>
+<div class="overlay" id="adminOverlay"><div class="box" id="adminBox" style="max-width:520px"></div></div>
+
+<script>
+/* ================= VLOGE ================= */
+const ROLES = ['admin','vodja','zastopnik','racunovodja','cenilec'];
+let session = null;
+try{ session = JSON.parse(sessionStorage.getItem('zavis_session')); }catch(e){}
+
+/* ================= SHEMA MODULOV ================= */
+const schemas = {
+  police:{label:'Zavarovalne police', fields:[
+    {k:'id',l:'Št. police'},{k:'stranka',l:'Stranka'},{k:'produkt',l:'Produkt'},{k:'regija',l:'Regija'},
+    {k:'premija',l:'Premija'},{k:'status',l:'Status',tag:true},{k:'potek',l:'Poteče'}]},
+  skode:{label:'Škodni zahtevki', fields:[
+    {k:'id',l:'Št. zahtevka'},{k:'stranka',l:'Stranka'},{k:'vrsta',l:'Vrsta škode'},
+    {k:'vrednost',l:'Ocenjena vrednost'},{k:'faza',l:'Faza',tag:true},{k:'dnevi',l:'Dni odprto'}]},
+  stranke:{label:'Stranke (CRM)', fields:[
+    {k:'ime',l:'Stranka'},{k:'segment',l:'Segment'},{k:'police',l:'Št. polic'},
+    {k:'ltv',l:'Vrednost stranke (LTV)'},{k:'tveganje',l:'Ocena tveganja',tag:true}]},
+  zastopniki:{label:'Zastopniki in mreža', fields:[
+    {k:'ime',l:'Enota / zastopnik'},{k:'tip',l:'Tip'},{k:'sklenitve',l:'Sklenitve (mesec)'},{k:'uspesnost',l:'Uspešnost'}]},
+  produkti:{label:'Produkti', fields:[{k:'ime',l:'Produkt'},{k:'opis',l:'Opis',type:'textarea'}]},
+  premije:{label:'Premije in plačila', fields:[
+    {k:'polica',l:'Št. police'},{k:'znesek',l:'Znesek'},{k:'datum',l:'Datum'},
+    {k:'nacin',l:'Način plačila'},{k:'status',l:'Status',tag:true}]},
+  pritozbe:{label:'Pritožbe strank', fields:[
+    {k:'stranka',l:'Stranka'},{k:'razlog',l:'Razlog',type:'textarea'},{k:'datum',l:'Datum'},{k:'status',l:'Status',tag:true}]},
+  naloge:{label:'Naloge in obnove', fields:[
+    {k:'naslov',l:'Naloga'},{k:'zadolzen',l:'Zadolžena oseba'},{k:'rok',l:'Rok'},{k:'status',l:'Status',tag:true}]},
+  racuni:{label:'Računi', fields:[
+    {k:'id',l:'Št. računa'},{k:'prejemnik',l:'Prejemnik / stranka'},{k:'znesek',l:'Znesek (z DDV)'},
+    {k:'ddv',l:'DDV stopnja'},{k:'datumIzdaje',l:'Datum izdaje'},{k:'rokPlacila',l:'Rok plačila'},{k:'status',l:'Status',tag:true}]},
+  zaposleni:{label:'Zaposleni (kadri)', fields:[
+    {k:'ime',l:'Ime in priimek'},{k:'oddelek',l:'Oddelek'},{k:'vloga',l:'Vloga'},
+    {k:'datumZaposlitve',l:'Datum zaposlitve'},{k:'status',l:'Status',tag:true}]},
+  stroski:{label:'Stroški poslovanja', fields:[
+    {k:'kategorija',l:'Kategorija'},{k:'opis',l:'Opis',type:'textarea'},{k:'znesek',l:'Znesek'},
+    {k:'datum',l:'Datum'},{k:'status',l:'Status',tag:true}]},
+  kpiTrend:{label:'KPI po mesecih', fields:[
+    {k:'mesec',l:'Mesec'},{k:'prihodki',l:'Prihodki (mio €)'},{k:'skodninost',l:'Škodninost (%)'},{k:'kombinirani',l:'Kombinirani količnik (%)'}]},
+  uporabniki:{label:'Uporabniki', fields:[
+    {k:'ime',l:'Ime in priimek'},{k:'uporabnisko',l:'Uporabniško ime'},{k:'geslo',l:'Geslo'},
+    {k:'vloga',l:'Vloga (admin/vodja/zastopnik/racunovodja/cenilec)'},{k:'status',l:'Status',tag:true}]},
+};
+
+const modules = [
+  {id:'dash', label:'Nadzorna plošča', icon:'◧', type:'custom', roles:'all'},
+  {id:'police', label:'Zavarovalne police', icon:'▤', type:'crud', roles:['admin','vodja','zastopnik']},
+  {id:'skode', label:'Škodni zahtevki', icon:'⚑', type:'crud', roles:['admin','vodja','zastopnik','cenilec']},
+  {id:'stranke', label:'Stranke (CRM)', icon:'◍', type:'crud', roles:['admin','vodja','zastopnik']},
+  {id:'mreza', label:'Zastopniki in mreža', icon:'⌘', type:'crud', schema:'zastopniki', roles:['admin','vodja']},
+  {id:'produkti', label:'Produkti', icon:'▣', type:'crud', roles:'all'},
+  {id:'premije', label:'Premije in plačila', icon:'฿', type:'crud', roles:['admin','vodja','racunovodja']},
+  {id:'pritozbe', label:'Pritožbe strank', icon:'!', type:'crud', roles:['admin','vodja','zastopnik']},
+  {id:'naloge', label:'Naloge in obnove', icon:'☑', type:'crud', roles:'all'},
+  {id:'racuni', label:'Računi', icon:'฿', type:'crud', roles:['admin','vodja','racunovodja']},
+  {id:'banka', label:'Bančna uskladitev', icon:'⇄', type:'custom', roles:['admin','vodja','racunovodja']},
+  {id:'zaposleni', label:'Zaposleni (kadri)', icon:'☺', type:'crud', roles:['admin','vodja']},
+  {id:'stroski', label:'Stroški poslovanja', icon:'−', type:'crud', roles:['admin','vodja','racunovodja']},
+  {id:'kpiTrend', label:'KPI po mesecih', icon:'▦', type:'crud', roles:['admin','vodja','racunovodja']},
+  {id:'vodstvo', label:'Vodstvena plošča', icon:'★', type:'custom', roles:['admin','vodja']},
+  {id:'zemljevid', label:'Zemljevid izpostavljenosti', icon:'⛶', type:'custom', roles:['admin','vodja','zastopnik']},
+  {id:'tveganja', label:'Analitika tveganj', icon:'△', type:'custom', roles:['admin','vodja']},
+  {id:'antifraud', label:'Zaznava goljufij', icon:'⛔', type:'custom', roles:['admin','vodja','cenilec']},
+  {id:'pozavarovanje', label:'Pozavarovanje', icon:'⇄', type:'custom', roles:['admin','vodja']},
+  {id:'dokumenti', label:'Dokumenti in arhiv', icon:'▢', type:'custom', roles:'all'},
+  {id:'skladnost', label:'Skladnost (Solvency II)', icon:'✓', type:'custom', roles:['admin','vodja']},
+  {id:'obvestila', label:'Opozorila', icon:'✦', type:'custom', roles:'all'},
+  {id:'audit', label:'Revizijska sled', icon:'≡', type:'custom', roles:['admin','vodja']},
+  {id:'uporabniki', label:'Uporabniki', icon:'⚿', type:'crud', roles:['admin']},
+];
+
+/* ================= PODATKI ================= */
+function uid(){ return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function withIds(arr){ return arr.map(r=>({_id:uid(), ...r})); }
+
+function defaultData(){ return {
+  police: withIds([
+    {id:'POL-88213', stranka:'Novak Marko', produkt:'Avtomobilsko kasko', regija:'Ljubljana', premija:'642 €', status:'aktivna', potek:'14.03.2027'},
+    {id:'POL-88240', stranka:'Kovač Ana', produkt:'Življenjsko zavarovanje', regija:'Maribor', premija:'38 €/mes', status:'aktivna', potek:'—'},
+    {id:'POL-88301', stranka:'Zupan Gradbeništvo d.o.o.', produkt:'Premoženjsko', regija:'Celje', premija:'2.410 €', status:'v obnovi', potek:'30.09.2026'},
+    {id:'POL-88390', stranka:'Kranjc Logistika d.o.o.', produkt:'Flotno avtomobilsko', regija:'Koper', premija:'11.200 €', status:'tvegano', potek:'02.11.2026'},
+  ]),
+  skode: withIds([
+    {id:'ŠK-5541', stranka:'Novak Marko', vrsta:'Trčenje', vrednost:'1.850 €', faza:'cenitev', dnevi:4},
+    {id:'ŠK-5539', stranka:'Kranjc Logistika d.o.o.', vrsta:'Požar skladišča', vrednost:'84.000 €', faza:'preiskava', dnevi:19},
+  ]),
+  stranke: withIds([
+    {ime:'Novak Marko', segment:'Fizična oseba', police:2, ltv:'4.100 €', tveganje:'nizko'},
+    {ime:'Kranjc Logistika d.o.o.', segment:'Poslovna stranka', police:5, ltv:'62.300 €', tveganje:'visoko'},
+  ]),
+  zastopniki: withIds([
+    {ime:'Enota Ljubljana Center', tip:'Lastna poslovalnica', sklenitve:142, uspesnost:'87%'},
+    {ime:'Digitalni kanal (splet/app)', tip:'Neposredna prodaja', sklenitve:398, uspesnost:'—'},
+  ]),
+  produkti: withIds([
+    {ime:'Avtomobilsko zavarovanje (AO + kasko)', opis:'Osnovno in kasko kritje, asistenca, popust za varno vožnjo iz telematike.'},
+    {ime:'Kibernetsko zavarovanje', opis:'Kritje za podjetja ob vdorih, izsiljevalski programski opremi, izgubi podatkov.'},
+  ]),
+  premije: withIds([
+    {polica:'POL-88213', znesek:'642 €', datum:'01.09.2026', nacin:'Trajnik', status:'plačano'},
+    {polica:'POL-88390', znesek:'2.800 €', datum:'15.09.2026', nacin:'SEPA', status:'v zamudi'},
+  ]),
+  pritozbe: withIds([
+    {stranka:'Kranjc Logistika d.o.o.', razlog:'Nestrinjanje z višino cenitve škode ŠK-5539', datum:'22.09.2026', status:'v obravnavi'},
+  ]),
+  naloge: withIds([
+    {naslov:'Poklicati stranko pred potekom police POL-88301', zadolzen:'A. Bevc', rok:'28.09.2026', status:'odprto'},
+  ]),
+  racuni: withIds([
+    {id:'RA-2026-0412', prejemnik:'Kranjc Logistika d.o.o.', znesek:'2.800 €', ddv:'22%', datumIzdaje:'15.09.2026', rokPlacila:'15.10.2026', status:'v zamudi'},
+    {id:'RA-2026-0413', prejemnik:'Novak Marko', znesek:'642 €', ddv:'22%', datumIzdaje:'01.09.2026', rokPlacila:'01.10.2026', status:'plačano'},
+  ]),
+  zaposleni: withIds([
+    {ime:'Ana Bevc', oddelek:'Prodaja', vloga:'Zavarovalna zastopnica', datumZaposlitve:'03.04.2019', status:'aktiven'},
+    {ime:'Jure Kos', oddelek:'Škodni sektor', vloga:'Cenilec škod', datumZaposlitve:'11.01.2022', status:'aktiven'},
+  ]),
+  stroski: withIds([
+    {kategorija:'Pozavarovanje', opis:'Kvotna premija za Q3', znesek:'184.000 €', datum:'10.09.2026', status:'plačano'},
+    {kategorija:'IT in razvoj', opis:'Licence in vzdrževanje informacijskega sistema', znesek:'9.400 €', datum:'05.09.2026', status:'odprto'},
+  ]),
+  kpiTrend: withIds([
+    {mesec:'Apr', prihodki:4.1, skodninost:61, kombinirani:97},
+    {mesec:'Maj', prihodki:4.6, skodninost:59, kombinirani:96},
+    {mesec:'Jun', prihodki:4.3, skodninost:63, kombinirani:98},
+    {mesec:'Jul', prihodki:5.0, skodninost:57, kombinirani:95},
+    {mesec:'Avg', prihodki:5.4, skodninost:55, kombinirani:94},
+    {mesec:'Sep', prihodki:5.9, skodninost:52, kombinirani:92},
+  ]),
+  uporabniki: withIds([
+    {ime:'Admin Uporabnik', uporabnisko:'admin', geslo:'admin123', vloga:'admin', status:'aktiven'},
+    {ime:'Ana Bevc', uporabnisko:'ana', geslo:'zastopnik123', vloga:'zastopnik', status:'aktiven'},
+    {ime:'Jure Kos', uporabnisko:'jure', geslo:'cenilec123', vloga:'cenilec', status:'aktiven'},
+    {ime:'Meta Rojc', uporabnisko:'meta', geslo:'racun123', vloga:'racunovodja', status:'aktiven'},
+  ]),
+  auditLog: [],
+};}
+
+let state = null;
+try{ state = JSON.parse(localStorage.getItem('zavis_data')); }catch(e){}
+if(!state) state = defaultData();
+if(!state.auditLog) state.auditLog=[];
+function persist(){ localStorage.setItem('zavis_data', JSON.stringify(state)); }
+function logAction(action, detail){
+  state.auditLog.unshift({ts:new Date().toLocaleString('sl-SI'), user: session?session.ime:'—', action, detail:detail||''});
+  if(state.auditLog.length>300) state.auditLog.length=300;
+}
+
+/* ================= POMOŽNE FUNKCIJE ================= */
+const $=s=>document.querySelector(s);
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function statusTag(v){
+  const s=String(v||'').toLowerCase();
+  if(/tvegan|preiskav|zamud|visoko|risk/.test(s)) return 'risk';
+  if(/obnov|cenit|obravnav|srednj|odprto|wait/.test(s)) return 'wait';
+  return 'ok';
+}
+function tagHtml(v){ return `<span class="tag ${statusTag(v)}">${esc(v)}</span>`; }
+function parseDateSl(str){
+  const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(str||'').trim());
+  if(!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+function fmtDateSl(d){ return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
+
+/* ================= PRIJAVA ================= */
+function moduleAllowed(m){ return m.roles==='all' || (session && m.roles.includes(session.vloga)); }
+function showLogin(){ $('#loginWrap').classList.add('show'); }
+function tryLogin(){
+  const u=$('#li_user').value.trim(), p=$('#li_pass').value;
+  const rec = state.uporabniki.find(r=>r.uporabnisko===u && r.geslo===p && /aktiv/i.test(r.status));
+  if(!rec){ $('#li_err').textContent='Napačno uporabniško ime ali geslo, ali uporabnik ni aktiven.'; return; }
+  session = {ime:rec.ime, uporabnisko:rec.uporabnisko, vloga:rec.vloga};
+  sessionStorage.setItem('zavis_session', JSON.stringify(session));
+  logAction('prijava', session.ime+' ('+session.vloga+')'); persist();
+  $('#loginWrap').classList.remove('show');
+  boot();
+}
+function logout(){ sessionStorage.removeItem('zavis_session'); location.reload(); }
+
+/* ================= NAVIGACIJA ================= */
+let current='dash';
+function renderNav(){
+  const visible = modules.filter(moduleAllowed);
+  $('#navwrap').innerHTML = visible.map(m=>`<button class="nav-btn ${m.id===current?'active':''}" data-m="${m.id}">
+    <span aria-hidden="true">${m.icon}</span><span class="lbltext">${m.label}</span></button>`).join('');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{current=b.dataset.m; renderNav(); renderMain();}));
+  $('#sidefoot').innerHTML = session ? `Prijavljen: <b>${esc(session.ime)}</b><br>Vloga: ${esc(session.vloga)}<br><button onclick="logout()">Odjava</button>` : '';
+  if(!visible.find(m=>m.id===current) && visible.length) current=visible[0].id;
+}
+
+/* ================= CRUD: ISKANJE, TABELA, OBRAZEC ================= */
+const searchState = {};
+function extraActionsHtml(schemaKey, r){
+  if(schemaKey==='premije' && r.status!=='plačano') return `<button class="rowbtn" data-invoice="${r._id}">Ustvari račun</button>`;
+  if(schemaKey==='stranke' && /poslovna/i.test(r.segment)) return `<button class="rowbtn" data-ajpes="${r._id}">Preveri v AJPES</button>`;
+  return '';
+}
+function rowsHtml(schemaKey, rows){
+  const sch=schemas[schemaKey];
+  if(!rows.length) return `<tr><td colspan="${sch.fields.length+1}" class="note">Ni zadetkov.</td></tr>`;
+  return rows.map(r=>`<tr>${sch.fields.map(f=>`<td>${f.tag?tagHtml(r[f.k]):esc(r[f.k])}</td>`).join('')}
+    <td>${extraActionsHtml(schemaKey,r)}<button class="rowbtn" data-edit="${r._id}" data-schema="${schemaKey}">Uredi</button><button class="rowbtn danger" data-del="${r._id}" data-schema="${schemaKey}">Izbriši</button></td></tr>`).join('');
+}
+function filteredRows(schemaKey){
+  const term=(searchState[schemaKey]||'').toLowerCase();
+  const sch=schemas[schemaKey];
+  return state[schemaKey].filter(r=>!term || sch.fields.some(f=>String(r[f.k]||'').toLowerCase().includes(term)));
+}
+function onSearch(schemaKey, val){
+  searchState[schemaKey]=val;
+  const tb=document.getElementById('tbody-'+schemaKey);
+  if(tb) tb.innerHTML = rowsHtml(schemaKey, filteredRows(schemaKey));
+}
+function exportCsv(schemaKey){
+  const sch=schemas[schemaKey];
+  const head=sch.fields.map(f=>f.l).join(';');
+  const lines=state[schemaKey].map(r=>sch.fields.map(f=>String(r[f.k]==null?'':r[f.k]).replace(/;/g,',')).join(';'));
+  const csv='\uFEFF'+[head,...lines].join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=schemaKey+'.csv'; a.click();
+}
+function renderCrudTable(modKey){
+  const schemaKey = modules.find(m=>m.id===modKey).schema || modKey;
+  const sch=schemas[schemaKey];
+  return `
+  <div class="toolbar">
+    <button class="btn primary" onclick="openForm('${schemaKey}')">+ Dodaj zapis</button>
+    <input type="text" placeholder="Išči po vseh poljih..." oninput="onSearch('${schemaKey}',this.value)">
+    <button class="btn" onclick="exportCsv('${schemaKey}')">Izvozi v Excel (CSV)</button>
+    <button class="btn" onclick="window.print()">Izvozi v PDF (natisni)</button>
+  </div>
+  <div class="panel"><table><thead><tr>${sch.fields.map(f=>`<th>${f.l}</th>`).join('')}<th></th></tr></thead>
+  <tbody id="tbody-${schemaKey}">${rowsHtml(schemaKey, filteredRows(schemaKey))}</tbody></table></div>`;
+}
+function openForm(schemaKey, id){
+  const sch=schemas[schemaKey];
+  const rec = id ? state[schemaKey].find(r=>r._id===id) : {};
+  $('#formBox').innerHTML = `<h3>${id?'Uredi zapis':'Nov zapis'} — ${sch.label}</h3>
+    ${sch.fields.map(f=>`<div class="field"><label>${f.l}</label>${
+      f.type==='textarea' ? `<textarea data-k="${f.k}">${esc(rec[f.k])}</textarea>` : `<input data-k="${f.k}" value="${esc(rec[f.k])}">`
+    }</div>`).join('')}
+    <div class="actions">
+      <button class="btn" onclick="closeOverlay('formOverlay')">Prekliči</button>
+      <button class="btn primary" onclick="saveForm('${schemaKey}','${id||''}')">Shrani</button>
+    </div>`;
+  $('#formOverlay').classList.add('show');
+}
+function saveForm(schemaKey, id){
+  const sch=schemas[schemaKey];
+  const obj={};
+  sch.fields.forEach(f=>{ const el=document.querySelector(`#formBox [data-k="${f.k}"]`); obj[f.k]=el.value; });
+  if(id){ Object.assign(state[schemaKey].find(r=>r._id===id), obj); logAction('Urejeno', schemas[schemaKey].label+' — '+id); }
+  else{ obj._id=uid(); state[schemaKey].push(obj); logAction('Dodano', schemas[schemaKey].label); }
+  persist(); closeOverlay('formOverlay'); renderMain();
+}
+function deleteRecord(schemaKey,id){
+  if(!confirm('Izbrišem ta zapis?')) return;
+  state[schemaKey]=state[schemaKey].filter(r=>r._id!==id);
+  logAction('Izbrisano', schemas[schemaKey].label+' — '+id);
+  persist(); renderMain();
+}
+function closeOverlay(id){ $('#'+id).classList.remove('show'); }
+
+/* Delegirano ravnanje s klikom (varno za besedilo z narekovaji) */
+document.addEventListener('click', e=>{
+  const t=e.target;
+  if(t.dataset.edit!==undefined) openForm(t.dataset.schema, t.dataset.edit);
+  else if(t.dataset.del!==undefined) deleteRecord(t.dataset.schema, t.dataset.del);
+  else if(t.dataset.invoice!==undefined) createInvoiceFromPremium(t.dataset.invoice);
+  else if(t.dataset.ajpes!==undefined) lookupAjpes(t.dataset.ajpes);
+  else if(t.dataset.confirmpay!==undefined) confirmBankMatch(+t.dataset.confirmpay);
+});
+
+/* ================= AVTOMATIZACIJA RAČUNOV ================= */
+function createInvoiceFromPremium(premijaId){
+  const p = state.premije.find(r=>r._id===premijaId);
+  if(!p) return;
+  const pol = state.police.find(x=>x.id===p.polica);
+  const izdaje = new Date();
+  const rok = new Date(izdaje.getTime()+15*86400000);
+  const novRacun = {_id:uid(), id:'RA-'+izdaje.getFullYear()+'-'+Math.floor(1000+Math.random()*9000),
+    prejemnik: pol? pol.stranka : p.polica, znesek:p.znesek, ddv:'22%',
+    datumIzdaje:fmtDateSl(izdaje), rokPlacila:fmtDateSl(rok), status:'odprto'};
+  state.racuni.push(novRacun);
+  logAction('Samodejno ustvarjen račun', novRacun.id+' iz premije '+p.polica);
+  persist();
+  current='racuni'; renderNav(); renderMain();
+}
+function lookupAjpes(strankaId){
+  const s = state.stranke.find(r=>r._id===strankaId);
+  if(!s) return;
+  window.open('https://www.google.com/search?q='+encodeURIComponent('AJPES '+s.ime),'_blank');
+}
+
+/* ================= BANČNA USKLADITEV ================= */
+let bankLines=[];
+function parseBankCsv(text){
+  return text.split(/\r?\n/).filter(Boolean).slice(1).map(line=>{
+    const parts = line.split(line.includes(';')?';':',');
+    return {datum:(parts[0]||'').trim(), znesek:(parts[1]||'').trim(), opis:(parts[2]||'').trim()};
+  });
+}
+function bankFileChosen(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ bankLines=parseBankCsv(r.result); renderMain(); };
+  r.readAsText(f);
+}
+function amountNum(v){ return parseFloat(String(v).replace(/[^\d,.-]/g,'').replace(',','.'))||0; }
+function confirmBankMatch(idx){
+  const line=bankLines[idx]; if(!line) return;
+  const racun = state.racuni.find(r=>r.status!=='plačano' && Math.abs(amountNum(r.znesek)-amountNum(line.znesek))<0.01);
+  if(racun){ racun.status='plačano'; logAction('Uskladitev plačila', racun.id+' potrjen iz bančnega izpiska'); persist(); }
+  bankLines.splice(idx,1); renderMain();
+}
+
+/* ================= OBVESTILA (rok opozorila) ================= */
+function computeAlerts(){
+  const today=new Date(); const alerts=[];
+  state.police.forEach(p=>{ const d=parseDateSl(p.potek); if(d){ const days=Math.round((d-today)/86400000); if(days>=0 && days<=30) alerts.push({tip:'Polica poteka',besedilo:p.id+' ('+p.stranka+') poteče čez '+days+' dni',tag: days<=7?'risk':'wait'}); } });
+  state.racuni.forEach(r=>{ const d=parseDateSl(r.rokPlacila); if(d && r.status!=='plačano'){ const days=Math.round((d-today)/86400000); if(days<=7) alerts.push({tip:'Račun',besedilo:r.id+' ('+r.prejemnik+') — rok plačila čez '+days+' dni',tag: days<0?'risk':'wait'}); } });
+  state.naloge.forEach(n=>{ const d=parseDateSl(n.rok); if(d && !/zaklj|konč/i.test(n.status)){ const days=Math.round((d-today)/86400000); if(days<=7) alerts.push({tip:'Naloga',besedilo:n.naslov+' — rok čez '+days+' dni',tag: days<0?'risk':'wait'}); } });
+  return alerts;
+}
+
+/* ================= GLAVNO IZRISOVANJE ================= */
+function renderMain(){
+  const mod = modules.find(x=>x.id===current);
+  if(!mod || !moduleAllowed(mod)){ $('#main').innerHTML='<p class="note">Nimaš dostopa do tega modula.</p>'; return; }
+  let body='';
+  if(mod.type==='crud'){ body = renderCrudTable(mod.id); }
+  else if(current==='dash'){
+    const odprteSkode = state.skode.filter(s=>!/izpla/i.test(s.faza)).length;
+    body = `<div class="grid">
+      <div class="kpi"><div class="num">${state.police.length}</div><div class="lbl">Aktivne police (v tem naboru)</div></div>
+      <div class="kpi"><div class="num">${odprteSkode}</div><div class="lbl">Odprti škodni zahtevki</div></div>
+      <div class="kpi"><div class="num">${state.racuni.filter(r=>/zamud|odprto/i.test(r.status)).length}</div><div class="lbl">Neplačani/zapadli računi</div></div>
+      <div class="kpi"><div class="num">${state.zaposleni.filter(z=>/aktiv/i.test(z.status)).length}</div><div class="lbl">Aktivni zaposleni</div></div>
+    </div>
+    <div class="panel"><h3>Dobrodošli, ${esc(session.ime)}</h3><p class="note">Podatke vnašaš neposredno v vsak modul (+ Dodaj zapis). Shranjujejo se lokalno, prek gumba "Admin" pa jih sinhroniziraš z zasebnim GitHub repozitorijem ali mapo na napravi.</p></div>`;
+  }
+  else if(current==='banka'){
+    body = `<div class="panel"><h3>Uvoz bančnega izpiska (CSV: datum,znesek,opis)</h3>
+      <input type="file" accept=".csv" onchange="bankFileChosen(event)">
+      <p class="note">Vrstice se poskusijo samodejno ujemati z odprtimi računi po znesku. Ujemanje potrdiš ročno.</p></div>
+    ${bankLines.length? `<div class="panel"><h3>Vrstice iz izpiska (${bankLines.length})</h3>
+      ${bankLines.map((l,i)=>`<p style="font-size:13px">${esc(l.datum)} · ${esc(l.znesek)} · ${esc(l.opis)}
+        <button class="rowbtn" data-confirmpay="${i}">Poskusi uskladiti in potrdi plačilo</button></p>`).join('')}</div>` : ''}`;
+  }
+  else if(current==='vodstvo'){
+    const t=state.kpiTrend;
+    const maxP=Math.max(...t.map(x=>+x.prihodki),1);
+    body = `<div class="panel"><h3>Prihodki po mesecih (mio €)</h3><div class="bars">
+      ${t.map(x=>`<div class="bar" style="height:${(x.prihodki/maxP)*100}%"><span>${x.prihodki}</span><em>${x.mesec}</em></div>`).join('')}</div></div>
+    <div class="two-col">
+      <div class="panel"><h3>Škodninost (%)</h3><div class="bars">${t.map(x=>`<div class="bar" style="height:${x.skodninost}%"><span>${x.skodninost}%</span><em>${x.mesec}</em></div>`).join('')}</div></div>
+      <div class="panel"><h3>Kombinirani količnik (%)</h3><div class="bars">${t.map(x=>`<div class="bar" style="height:${Math.min(x.kombinirani,100)}%"><span>${x.kombinirani}%</span><em>${x.mesec}</em></div>`).join('')}</div></div>
+    </div><p class="note">Podatke za grafe urejaš v modulu "KPI po mesecih".</p>`;
+  }
+  else if(current==='zemljevid'){
+    const byRegion={};
+    state.police.forEach(p=>{ const r=p.regija||'Neznano'; byRegion[r]=byRegion[r]||{n:0,risk:0}; byRegion[r].n++; if(statusTag(p.status)==='risk') byRegion[r].risk++; });
+    body = `<div class="panel"><h3>Izpostavljenost portfelja po regijah</h3><p class="note">Shematski prikaz iz podatkov modula Police, ni prava geografska karta.</p>
+    <div class="region-grid">${Object.keys(byRegion).map(r=>{ const d=byRegion[r]; const ratio=d.risk/d.n; const cls=ratio>0.5?'risk':ratio>0?'wait':'ok';
+      return `<div class="regionbox"><b>${d.n}</b>${esc(r)}<div style="margin-top:6px"><span class="tag ${cls}">${d.risk} tvegan${d.risk===1?'a':'ih'}</span></div></div>`; }).join('')}</div></div>`;
+  }
+  else if(current==='tveganja'){
+    const cnt={nizko:0,srednje:0,visoko:0};
+    state.stranke.forEach(s=>{ const t=(s.tveganje||'').toLowerCase(); if(cnt[t]!==undefined) cnt[t]++; });
+    body = `<div class="panel"><h3>Portfelj strank po stopnji tveganja</h3><p class="note">Nizko: ${cnt.nizko} · Srednje: ${cnt.srednje} · Visoko: ${cnt.visoko}</p></div>
+    <div class="two-col">
+      <div class="panel"><h3>Napovedni modeli</h3><p class="note">Aktuarski modeli sprotno preračunavajo verjetnost škode po regiji, starosti vozila, vremenskih in vedenjskih (telematičnih) podatkih.</p></div>
+      <div class="panel"><h3>Klimatska tveganja</h3><p class="note">Satelitski in vremenski podatki napovedujejo izpostavljenost toči, poplavam in žledu na ravni posamezne police.</p></div>
+    </div>`;
+  }
+  else if(current==='antifraud'){
+    body = `<div class="panel"><h3>Mreža povezav (graf sumljivih vzorcev)</h3><p class="note">Samodejno odkrivanje ponavljajočih se udeležencev, prirejenih servisnih računov in časovnih nepravilnosti med sklenitvijo police in prijavo škode.</p></div>`;
+  }
+  else if(current==='pozavarovanje'){
+    body = `<div class="panel"><h3>Pozavarovalne pogodbe</h3><p class="note">Sledenje kvotnim in presežnim (XL) pogodbam po linijah poslovanja, s sprotnim izračunom lastnega deleža in obveznosti pozavarovatelja ob veliki škodi.</p></div>`;
+  }
+  else if(current==='dokumenti'){
+    body = `<div class="panel"><h3>Digitalni arhiv</h3><p class="note">Police, aneksi, cenitve in korespondenca — digitalno podpisani, verzionirani in iskalni po polnem besedilu. Dokumente hraniš v GitHub mapi ali lokalni mapi (glej Admin).</p></div>`;
+  }
+  else if(current==='skladnost'){
+    body = `<div class="grid"><div class="kpi"><div class="num">184 %</div><div class="lbl">Kapitalska ustreznost (SCR pokritost)</div></div>
+      <div class="kpi"><div class="num">A</div><div class="lbl">Interna ocena bonitete</div></div></div>
+    <div class="panel"><h3>Regulativno poročanje</h3><p class="note">Priprava poročil za AZN, Solvency II QRT obrazce, AML/KYC in GDPR sledljivost dostopov do osebnih podatkov.</p></div>`;
+  }
+  else if(current==='obvestila'){
+    const alerts=computeAlerts();
+    body = `<div class="panel"><h3>Opozorila pred roki (${alerts.length})</h3>
+    <p class="note">Prava samodejna e-pošta/SMS zahteva zunanjo storitev (npr. SMTP/SMS ponudnika), ki je v tej samostojni datoteki ni — spodaj lahko pripraviš e-poštno sporočilo prek svojega privzetega poštnega odjemalca.</p>
+    ${alerts.length? alerts.map(a=>`<p style="font-size:13.5px">${tagHtml(a.tip)} — ${esc(a.besedilo)}
+      <a class="rowbtn" href="mailto:?subject=${encodeURIComponent('Opozorilo ŠČIT: '+a.tip)}&body=${encodeURIComponent(a.besedilo)}">Pripravi e-pošto</a></p>`).join('') : '<p class="note">Trenutno ni opozoril v naslednjih 30 dneh.</p>'}</div>`;
+  }
+  else if(current==='audit'){
+    body = `<div class="panel"><h3>Revizijska sled</h3>${state.auditLog.length? `<table><thead><tr><th>Čas</th><th>Uporabnik</th><th>Dejanje</th><th>Podrobnosti</th></tr></thead><tbody>
+      ${state.auditLog.map(l=>`<tr><td>${esc(l.ts)}</td><td>${esc(l.user)}</td><td>${esc(l.action)}</td><td>${esc(l.detail)}</td></tr>`).join('')}</tbody></table>` : '<p class="note">Ni še zabeleženih dogodkov.</p>'}</div>`;
+  }
+  $('#main').innerHTML = `<div class="topbar"><div><h1>${mod.label}</h1><p>Zavarovalniški informacijski sistem ŠČIT</p></div></div>${body}`;
+}
+
+/* ================= ADMIN: GitHub / lokalna mapa / JSON ================= */
+let dirHandle=null;
+function ghCfg(){ return JSON.parse(localStorage.getItem('gh_cfg')||'{}'); }
+function saveGhCfg(c){ localStorage.setItem('gh_cfg', JSON.stringify(c)); }
+function openAdmin(){
+  const c=ghCfg();
+  $('#adminBox').innerHTML = `<h3>Admin — povezave in shranjevanje podatkov</h3>
+  <p class="note">GitHub žeton se hrani samo za trajanje te seje.</p>
+  <div class="field"><label>GitHub repozitorij (lastnik/repo)</label><input id="gh_repo" value="${esc(c.repo||'')}" placeholder="uporabnik/moj-privatni-repo"></div>
+  <div class="field"><label>Pot do datoteke</label><input id="gh_path" value="${esc(c.path||'data/zavarovalnica.json')}"></div>
+  <div class="field"><label>Veja</label><input id="gh_branch" value="${esc(c.branch||'main')}"></div>
+  <div class="field"><label>Osebni dostopni žeton (token)</label><input id="gh_token" type="password" placeholder="ghp_..."></div>
+  <div class="actions" style="justify-content:flex-start">
+    <button class="btn" onclick="ghLoad()">Naloži iz GitHub</button>
+    <button class="btn primary" onclick="ghSave()">Shrani v GitHub</button>
+  </div>
+  <div class="log" id="ghlog"></div>
+  <hr class="hr">
+  <h3 style="font-size:15px">Mapa na tem računalniku / telefonu</h3>
+  <p class="note">Deluje v Chrome/Edge. Izbira mape velja za to sejo.</p>
+  <div class="actions" style="justify-content:flex-start">
+    <button class="btn" onclick="pickFolder()">Izberi mapo</button>
+    <button class="btn" onclick="folderLoad()">Naloži iz mape</button>
+    <button class="btn primary" onclick="folderSave()">Shrani v mapo</button>
+  </div>
+  <div class="log" id="folderlog">${window.showDirectoryPicker? '' : 'Ta brskalnik ne podpira izbire map — uporabi Chrome ali Edge.'}</div>
+  <hr class="hr">
+  <h3 style="font-size:15px">JSON datoteka</h3>
+  <div class="actions" style="justify-content:flex-start">
+    <button class="btn" onclick="downloadJson()">Prenesi JSON</button>
+    <label class="btn" style="cursor:pointer">Uvozi JSON<input type="file" accept="application/json" style="display:none" onchange="importJson(event)"></label>
+  </div>
+  <div class="actions"><button class="btn" onclick="closeOverlay('adminOverlay')">Zapri</button></div>`;
+  $('#adminOverlay').classList.add('show');
+}
+function b64EncodeUtf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUtf8(str){ return decodeURIComponent(escape(atob(str))); }
+async function ghLoad(){
+  const repo=$('#gh_repo').value.trim(), path=$('#gh_path').value.trim(), branch=$('#gh_branch').value.trim()||'main', token=$('#gh_token').value.trim();
+  const log=$('#ghlog'); log.textContent='Nalagam...'; saveGhCfg({repo,path,branch});
+  try{
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github+json'}});
+    if(!res.ok) throw new Error('HTTP '+res.status+' — preveri repo, pot in žeton');
+    const data = await res.json();
+    state = JSON.parse(b64DecodeUtf8(data.content)); if(!state.auditLog) state.auditLog=[];
+    persist(); logAction('GitHub','Podatki naloženi iz repozitorija'); renderNav(); renderMain();
+    log.textContent='Podatki uspešno naloženi iz GitHub.';
+  }catch(e){ log.textContent='Napaka: '+e.message; }
+}
+async function ghSave(){
+  const repo=$('#gh_repo').value.trim(), path=$('#gh_path').value.trim(), branch=$('#gh_branch').value.trim()||'main', token=$('#gh_token').value.trim();
+  const log=$('#ghlog'); log.textContent='Shranjujem...'; saveGhCfg({repo,path,branch});
+  try{
+    let sha;
+    const head = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github+json'}});
+    if(head.ok){ sha=(await head.json()).sha; }
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,{
+      method:'PUT', headers:{Authorization:`token ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+      body: JSON.stringify({message:'Posodobitev podatkov ŠČIT IS', content:b64EncodeUtf8(JSON.stringify(state,null,2)), branch, sha})
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status+' — preveri pravice žetona (repo scope)');
+    logAction('GitHub','Podatki shranjeni v repozitorij');
+    log.textContent='Podatki uspešno shranjeni v GitHub.';
+  }catch(e){ log.textContent='Napaka: '+e.message; }
+}
+async function pickFolder(){
+  try{ dirHandle = await window.showDirectoryPicker(); $('#folderlog').textContent='Mapa izbrana: '+dirHandle.name; }
+  catch(e){ $('#folderlog').textContent='Izbira preklicana.'; }
+}
+async function folderSave(){
+  if(!dirHandle){ $('#folderlog').textContent='Najprej izberi mapo.'; return; }
+  try{
+    const fh = await dirHandle.getFileHandle('zavarovalnica.json',{create:true});
+    const w = await fh.createWritable(); await w.write(JSON.stringify(state,null,2)); await w.close();
+    logAction('Lokalna mapa','Podatki shranjeni v '+dirHandle.name);
+    $('#folderlog').textContent='Shranjeno v mapo: '+dirHandle.name+'/zavarovalnica.json';
+  }catch(e){ $('#folderlog').textContent='Napaka: '+e.message; }
+}
+async function folderLoad(){
+  if(!dirHandle){ $('#folderlog').textContent='Najprej izberi mapo.'; return; }
+  try{
+    const fh = await dirHandle.getFileHandle('zavarovalnica.json');
+    const file = await fh.getFile(); state = JSON.parse(await file.text()); if(!state.auditLog) state.auditLog=[];
+    persist(); logAction('Lokalna mapa','Podatki naloženi iz '+dirHandle.name); renderNav(); renderMain();
+    $('#folderlog').textContent='Podatki naloženi iz mape.';
+  }catch(e){ $('#folderlog').textContent='Napaka: '+e.message; }
+}
+function downloadJson(){
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='zavarovalnica.json'; a.click();
+}
+function importJson(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ state=JSON.parse(r.result); if(!state.auditLog) state.auditLog=[]; persist(); logAction('JSON uvoz','Podatki uvoženi iz datoteke'); renderNav(); renderMain(); alert('JSON uspešno uvožen.'); }catch(e){ alert('Napaka pri branju JSON: '+e.message); } };
+  r.readAsText(f);
+}
+
+/* ================= ZAGON ================= */
+function boot(){ renderNav(); renderMain(); }
+if(session){ boot(); } else { showLogin(); }
+</script>
+</body>
+</html>
