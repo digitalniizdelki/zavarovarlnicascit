@@ -1,0 +1,10 @@
+{
+  "name": "ŠČIT — Zavarovalniški informacijski sistem",
+  "short_name": "ŠČIT",
+  "start_url": "./zav-is.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F2EA",
+  "theme_color": "#10253D",
+  "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}
